@@ -1,0 +1,104 @@
+@startuml tech-repair-use-case
+title Маркази таъмири техника — Диаграммаи вариантҳои истифода
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor "Меҳмон\n(GUEST)" as Guest
+actor "Муштарӣ\n(CUSTOMER)" as Customer
+actor "Усто\n(MASTER)" as Master
+actor "Администратор\n(ADMIN)" as Admin
+
+rectangle "Системаи вебии маркази таъмири техника" {
+  usecase "Дидани маълумот\nдар бораи марказ" as UC_Info
+  usecase "Дидани хизматрасониҳо" as UC_Services
+  usecase "Бақайдгирӣ" as UC_Register
+  usecase "Воридшавӣ / Баромадан" as UC_Auth
+
+  usecase "Сабти дархости\nтаъмири техника" as UC_Create
+  usecase "Дидани фармоишҳои худ" as UC_MyOrders
+  usecase "Дидани ҳолати таъмир" as UC_Status
+  usecase "Дидани таърихи таъмир" as UC_History
+  usecase "Тасдиқ кардани\nарзиши таъмир" as UC_Approve
+  usecase "Рад кардани\nпешниҳоди таъмир" as UC_RejectEstimate
+  usecase "Бекор кардани дархост" as UC_Cancel
+  usecase "Идоракунии профил" as UC_Profile
+  usecase "Гирифтани огоҳиномаҳо" as UC_Notifications
+
+  usecase "Дидани фармоишҳои\nтаъиншуда" as UC_Assigned
+  usecase "Гузаронидани ташхис" as UC_Diagnosis
+  usecase "Сабти натиҷаи ташхис\nва арзиши таъмир" as UC_Estimate
+  usecase "Иҷро ва сабти\nкорҳои таъмирӣ" as UC_Repair
+  usecase "Сабти қисмҳои\nэҳтиётии истифодашуда" as UC_Parts
+  usecase "Нав кардани ҳолати фармоиш" as UC_UpdateStatus
+
+  usecase "Идоракунии истифодабарандагон" as UC_Users
+  usecase "Идоракунии хизматрасониҳо" as UC_ManageServices
+  usecase "Қабул ва идоракунии\nфармоишҳо" as UC_ManageOrders
+  usecase "Таъин кардани усто" as UC_AssignMaster
+  usecase "Сабти пардохт" as UC_Payment
+  usecase "Супоридани техника\nба муштарӣ" as UC_ReturnDevice
+  usecase "Дидани ҳисобот ва омор" as UC_Reports
+}
+
+Guest --> UC_Info
+Guest --> UC_Services
+Guest --> UC_Register
+Guest --> UC_Auth
+
+Customer --> UC_Auth
+Customer --> UC_Info
+Customer --> UC_Services
+Customer --> UC_Create
+Customer --> UC_MyOrders
+Customer --> UC_Status
+Customer --> UC_History
+Customer --> UC_Approve
+Customer --> UC_RejectEstimate
+Customer --> UC_Cancel
+Customer --> UC_Profile
+Customer --> UC_Notifications
+
+Master --> UC_Auth
+Master --> UC_Assigned
+Master --> UC_Diagnosis
+Master --> UC_Estimate
+Master --> UC_Repair
+Master --> UC_Parts
+Master --> UC_UpdateStatus
+Master --> UC_Notifications
+
+Admin --> UC_Auth
+Admin --> UC_Users
+Admin --> UC_ManageServices
+Admin --> UC_ManageOrders
+Admin --> UC_AssignMaster
+Admin --> UC_Payment
+Admin --> UC_ReturnDevice
+Admin --> UC_Reports
+Admin --> UC_Notifications
+
+UC_Create ..> UC_Auth : <<include>>
+UC_Diagnosis ..> UC_Assigned : <<include>>
+UC_Estimate ..> UC_Diagnosis : <<extend>>
+UC_Repair ..> UC_UpdateStatus : <<include>>
+UC_ReturnDevice ..> UC_Payment : <<include>>
+
+note bottom of UC_Create
+  Муштарӣ навъи техника, тамға, модел,
+  рақами силсилавӣ (агар бошад) ва
+  тавсифи носозиро ворид мекунад.
+  Фармоиши нав ҳолати NEW мегирад.
+end note
+
+note bottom of UC_AssignMaster
+  Администратор усторо ба фармоиш таъин мекунад.
+  Усто танҳо фармоишҳои ба ӯ таъиншударо мебинад.
+end note
+
+note bottom of UC_ReturnDevice
+  Техника пас аз анҷоми таъмир,
+  санҷиши натиҷа ва сабти пардохт
+  ба муштарӣ супорида мешавад.
+end note
+@enduml
