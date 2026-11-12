@@ -1,0 +1,210 @@
+@startuml tech-repair-class
+title Маркази таъмири техника — Диаграммаи синфҳо
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+enum UserRole {
+  CUSTOMER
+  MASTER
+  ADMIN
+}
+
+enum DeviceStatus {
+  RECEIVED
+  UNDER_REPAIR
+  READY
+  RETURNED
+}
+
+enum RepairOrderStatus {
+  NEW
+  ACCEPTED
+  DIAGNOSTICS
+  WAITING_APPROVAL
+  APPROVED
+  IN_PROGRESS
+  WAITING_PARTS
+  COMPLETED
+  ISSUED
+  REJECTED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+class User {
+  +id: int
+  +fullName: String
+  +email: String
+  +phone: String
+  -passwordHash: String
+  +role: UserRole
+  +isActive: Boolean
+  +createdAt: DateTime
+  +updateProfile()
+  +changePassword()
+}
+
+class Service {
+  +id: int
+  +name: String
+  +description: Text
+  +basePrice: Decimal
+  +isActive: Boolean
+  +create()
+  +update()
+  +deactivate()
+}
+
+class Device {
+  +id: int
+  +customerId: int
+  +deviceType: String
+  +brand: String
+  +model: String
+  +serialNumber: String
+  +description: Text
+  +createdAt: DateTime
+  +updateDetails()
+}
+
+class RepairOrder {
+  +id: int
+  +orderNumber: String
+  +customerId: int
+  +masterId: int
+  +deviceId: int
+  +serviceId: int
+  +problemDescription: Text
+  +estimatedCost: Decimal
+  +finalCost: Decimal
+  +status: RepairOrderStatus
+  +createdAt: DateTime
+  +acceptedAt: DateTime
+  +completedAt: DateTime
+  +create()
+  +assignMaster()
+  +changeStatus()
+  +cancel()
+}
+
+class Diagnosis {
+  +id: int
+  +repairOrderId: int
+  +masterId: int
+  +description: Text
+  +recommendation: Text
+  +estimatedCost: Decimal
+  +diagnosedAt: DateTime
+  +saveDiagnosis()
+}
+
+class RepairWork {
+  +id: int
+  +repairOrderId: int
+  +masterId: int
+  +description: Text
+  +workPrice: Decimal
+  +completedAt: DateTime
+  +recordWork()
+}
+
+class SparePart {
+  +id: int
+  +name: String
+  +sku: String
+  +quantity: Integer
+  +unitPrice: Decimal
+  +updateQuantity()
+}
+
+class OrderPart {
+  +id: int
+  +repairOrderId: int
+  +sparePartId: int
+  +quantity: Integer
+  +unitPrice: Decimal
+  +calculateTotal()
+}
+
+class Payment {
+  +id: int
+  +repairOrderId: int
+  +amount: Decimal
+  +method: String
+  +status: PaymentStatus
+  +paidAt: DateTime
+  +recordPayment()
+  +refund()
+}
+
+class Notification {
+  +id: int
+  +userId: int
+  +repairOrderId: int
+  +title: String
+  +message: Text
+  +isRead: Boolean
+  +createdAt: DateTime
+  +markAsRead()
+}
+
+class StatusHistory {
+  +id: int
+  +repairOrderId: int
+  +changedBy: int
+  +oldStatus: String
+  +newStatus: String
+  +comment: Text
+  +changedAt: DateTime
+  +recordChange()
+}
+
+' Алоқаҳои истифодабарандагон ва фармоишҳо
+User "1" -- "0..*" Device : owns >
+User "1" -- "0..*" RepairOrder : creates >
+User "0..1" -- "0..*" RepairOrder : assigned as master >
+Device "1" -- "0..*" RepairOrder : repaired through >
+Service "1" -- "0..*" RepairOrder : requested service >
+
+' Қисмҳои раванди таъмир
+RepairOrder "1" *-- "0..*" Diagnosis : has >
+RepairOrder "1" *-- "0..*" RepairWork : contains >
+RepairOrder "1" *-- "0..*" OrderPart : uses >
+SparePart "1" -- "0..*" OrderPart : included in >
+RepairOrder "1" *-- "0..*" Payment : payments >
+RepairOrder "1" *-- "0..*" StatusHistory : status log >
+
+' Огоҳиномаҳо
+User "1" -- "0..*" Notification : receives >
+RepairOrder "0..1" -- "0..*" Notification : related to >
+User "1" -- "0..*" Diagnosis : performs >
+User "1" -- "0..*" RepairWork : performs >
+User "1" -- "0..*" StatusHistory : changes >
+
+note right of RepairOrder
+  Ҳолатҳои асосии фармоиш:
+  NEW → ACCEPTED → DIAGNOSTICS
+  → WAITING_APPROVAL → APPROVED
+  → IN_PROGRESS → COMPLETED → ISSUED.
+
+  Агар қисм лозим бошад:
+  IN_PROGRESS → WAITING_PARTS
+  → IN_PROGRESS.
+
+  Фармоиши радшуда ё бекоршуда
+  ба ҳолати REJECTED ё CANCELLED мегузарад.
+end note
+
+note bottom of User
+  Нақши истифодабаранда сатҳи дастрасиро муайян мекунад.
+  CUSTOMER — фармоишҳои худро мебинад.
+  MASTER — фармоишҳои таъиншударо коркард мекунад.
+  ADMIN — тамоми система ва фармоишҳоро идора мекунад.
+end note
+@enduml
