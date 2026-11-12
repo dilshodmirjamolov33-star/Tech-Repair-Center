@@ -1,0 +1,103 @@
+@startuml tech-repair-use-case
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+title Диаграммаи вариантҳои истифода — Маркази таъмири техника
+
+actor "Меҳмон" as Guest
+actor "Муштарӣ\n(CUSTOMER)" as Customer
+actor "Усто\n(MASTER)" as Master
+actor "Администратор\n(ADMIN)" as Admin
+
+rectangle "Системаи вебии маркази таъмири техника" {
+  usecase "Дидани маълумот\nдар бораи марказ" as UC01
+  usecase "Дидани рӯйхати\nхизматрасониҳо" as UC02
+  usecase "Бақайдгирӣ" as UC03
+  usecase "Воридшавӣ ба система" as UC04
+
+  usecase "Сабти дархости\nтаъмири техника" as UC05
+  usecase "Санҷиши маълумоти\nдархост" as UC24
+  usecase "Дидани фармоишҳои\nхуд" as UC06
+  usecase "Дидани ҳолати\nтаъмир" as UC07
+  usecase "Тасдиқи нархи\nтаъмир" as UC08
+  usecase "Рад кардани\nпешниҳоди таъмир" as UC09
+  usecase "Бекор кардани\nдархост" as UC10
+  usecase "Гирифтани\nогоҳиҳо" as UC11
+
+  usecase "Дидани фармоишҳои\nтаъиншуда" as UC12
+  usecase "Гузаронидани\nташхиси техника" as UC13
+  usecase "Сабти натиҷаи\nташхис ва нарх" as UC14
+  usecase "Иҷрои корҳои\nтаъмирӣ" as UC15
+  usecase "Илова кардани\nқисмҳои эҳтиётӣ" as UC16
+  usecase "Тағйир додани\nҳолати фармоиш" as UC17
+
+  usecase "Идоракунии\nистифодабарандагон" as UC18
+  usecase "Идоракунии\nхизматрасониҳо" as UC19
+  usecase "Идоракунии\nфармоишҳо" as UC20
+  usecase "Таъин кардани\nусто ба фармоиш" as UC21
+  usecase "Сабти пардохт\nва супоридани техника" as UC22
+  usecase "Дидани ҳисобот\nва омор" as UC23
+}
+
+' Меҳмон
+Guest --> UC01
+Guest --> UC02
+Guest --> UC03
+Guest --> UC04
+
+' Муштарӣ
+Customer --> UC01
+Customer --> UC02
+Customer --> UC04
+Customer --> UC05
+Customer --> UC06
+Customer --> UC07
+Customer --> UC08
+Customer --> UC09
+Customer --> UC10
+Customer --> UC11
+
+' Усто
+Master --> UC04
+Master --> UC12
+Master --> UC13
+Master --> UC14
+Master --> UC15
+Master --> UC16
+Master --> UC17
+Master --> UC11
+
+' Администратор
+Admin --> UC04
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+Admin --> UC21
+Admin --> UC22
+Admin --> UC23
+Admin --> UC11
+
+' Сенарияҳои дохилшаванда
+UC05 ..> UC24 : <<include>>
+UC13 ..> UC14 : <<include>>
+UC15 ..> UC17 : <<include>>
+
+note bottom of UC05
+  Ҳангоми сабти дархост муштарӣ
+  навъи техника, тамға, модел,
+  мушкилот ва маълумоти тамосро ворид мекунад.
+end note
+
+note bottom of UC21
+  Администратор фармоишро ба усто
+  таъин мекунад. Усто танҳо фармоишҳои
+  ба ӯ таъиншударо идора мекунад.
+end note
+
+note bottom of UC22
+  Техника пас аз анҷоми таъмир ва
+  сабти пардохт ба муштарӣ супорида мешавад.
+end note
+
+@enduml
