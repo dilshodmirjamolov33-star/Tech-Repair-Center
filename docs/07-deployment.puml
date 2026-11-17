@@ -1,0 +1,63 @@
+@startuml
+title Диаграммаи ҷойгиркунии системаи маркази таъмири техника
+
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+
+node "Дастгоҳи истифодабаранда" as client {
+    artifact "Веб-браузер" as browser
+}
+
+cloud "Интернет" as internet
+
+node "Сервери веб" as webserver {
+    artifact "Веб-барномаи\nмаркази таъмири техника" as app
+    artifact "PHP" as php
+    artifact "HTML / CSS / JavaScript" as frontend
+}
+
+database "Сервери пойгоҳи додаҳо" as dbserver {
+    artifact "MySQL Database" as database
+    artifact "users\ncustomers\nservices\ndevices\nrepair_orders\ndiagnoses\norder_status_history\nparts\norder_parts\npayments\nnotifications\nreviews" as tables
+}
+
+node "Анбори файлҳо" as storage {
+    folder "uploads/" as uploads
+    artifact "Аксҳои дастгоҳҳо\nва ҳуҷҷатҳои таъмир" as repairfiles
+}
+
+cloud "Хизматрасониҳои беруна" as external {
+    artifact "Email / SMS\n(огоҳиномаҳо)" as notifications
+}
+
+browser --> internet : HTTPS
+internet --> webserver : HTTP/HTTPS
+webserver --> app
+app --> php
+app --> frontend
+php --> database : SQL
+database --> tables
+app --> uploads : Сабт / хондани файлҳо
+uploads --> repairfiles
+app --> notifications : API / SMTP
+
+note right of app
+  Амалҳои асосӣ:
+  - Бақайдгирӣ ва воридшавӣ
+  - Қабули дархости таъмир
+  - Идоракунии дастгоҳҳо
+  - Таъини усто
+  - Навсозии ҳолати таъмир
+  - Ҳисоб ва пардохт
+  - Огоҳинома ба муштарӣ
+end note
+
+note bottom of dbserver
+  Дастрасӣ ба пойгоҳи додаҳо
+  танҳо тавассути сервери барнома
+  ва бо санҷиши ҳуқуқи корбар
+  амалӣ карда мешавад.
+end note
+
+@enduml

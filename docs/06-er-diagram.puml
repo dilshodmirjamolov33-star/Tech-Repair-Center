@@ -1,0 +1,191 @@
+@startuml
+title Маркази таъмири техника — Диаграммаи ER (Crow's Foot)
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam entity {
+  BackgroundColor White
+  BorderColor Black
+}
+
+entity "Истифодабарандагон (users)" as users {
+  * id : BIGINT <<PK>>
+  --
+  full_name : VARCHAR(255)
+  email : VARCHAR(255) <<UQ>>
+  phone : VARCHAR(30)
+  password_hash : VARCHAR(255)
+  role : VARCHAR(20)
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Хизматрасониҳо (services)" as services {
+  * id : BIGINT <<PK>>
+  --
+  name : VARCHAR(255)
+  description : TEXT
+  base_price : DECIMAL(10,2)
+  estimated_days : SMALLINT
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Дастгоҳҳо (devices)" as devices {
+  * id : BIGINT <<PK>>
+  --
+  customer_id : BIGINT <<FK>>
+  device_type : VARCHAR(100)
+  brand : VARCHAR(100)
+  model : VARCHAR(100)
+  serial_number : VARCHAR(150)
+  description : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Фармоишҳои таъмир (repair_orders)" as repair_orders {
+  * id : BIGINT <<PK>>
+  --
+  customer_id : BIGINT <<FK>>
+  device_id : BIGINT <<FK>>
+  service_id : BIGINT <<FK, nullable>>
+  master_id : BIGINT <<FK, nullable>>
+  order_number : VARCHAR(50) <<UQ>>
+  problem_description : TEXT
+  status : VARCHAR(30)
+  estimated_cost : DECIMAL(10,2)
+  final_cost : DECIMAL(10,2)
+  customer_note : TEXT
+  received_at : DATETIME
+  completed_at : DATETIME
+  issued_at : DATETIME
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Ташхисҳо (diagnoses)" as diagnoses {
+  * id : BIGINT <<PK>>
+  --
+  repair_order_id : BIGINT <<FK>>
+  master_id : BIGINT <<FK>>
+  problem_found : TEXT
+  recommended_solution : TEXT
+  estimated_cost : DECIMAL(10,2)
+  estimated_days : SMALLINT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Корҳои таъмирӣ (repair_works)" as repair_works {
+  * id : BIGINT <<PK>>
+  --
+  repair_order_id : BIGINT <<FK>>
+  master_id : BIGINT <<FK>>
+  work_description : TEXT
+  labor_cost : DECIMAL(10,2)
+  started_at : DATETIME
+  finished_at : DATETIME
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Қисмҳои эҳтиётӣ (spare_parts)" as spare_parts {
+  * id : BIGINT <<PK>>
+  --
+  name : VARCHAR(255)
+  part_number : VARCHAR(100)
+  description : TEXT
+  quantity : INT
+  unit_price : DECIMAL(10,2)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Қисмҳои фармоиш (order_parts)" as order_parts {
+  * id : BIGINT <<PK>>
+  --
+  repair_order_id : BIGINT <<FK>>
+  spare_part_id : BIGINT <<FK>>
+  quantity : INT
+  unit_price : DECIMAL(10,2)
+  created_at : TIMESTAMP
+}
+
+entity "Пардохтҳо (payments)" as payments {
+  * id : BIGINT <<PK>>
+  --
+  repair_order_id : BIGINT <<FK>>
+  amount : DECIMAL(10,2)
+  method : VARCHAR(30)
+  status : VARCHAR(20)
+  transaction_reference : VARCHAR(255) <<UQ, nullable>>
+  paid_at : DATETIME
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Таърихи ҳолатҳо (status_histories)" as status_histories {
+  * id : BIGINT <<PK>>
+  --
+  repair_order_id : BIGINT <<FK>>
+  changed_by : BIGINT <<FK>>
+  old_status : VARCHAR(30)
+  new_status : VARCHAR(30)
+  comment : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "Огоҳиномаҳо (notifications)" as notifications {
+  * id : BIGINT <<PK>>
+  --
+  user_id : BIGINT <<FK>>
+  repair_order_id : BIGINT <<FK, nullable>>
+  title : VARCHAR(255)
+  message : TEXT
+  is_read : BOOLEAN
+  created_at : TIMESTAMP
+}
+
+users ||--o{ devices : соҳиби дастгоҳ
+users ||--o{ repair_orders : сабт мекунад
+devices ||--o{ repair_orders : барои таъмир қабул мешавад
+services ||--o{ repair_orders : намуди хизматрасонӣ
+users ||--o{ repair_orders : устои масъул
+repair_orders ||--o{ diagnoses : ташхис дорад
+users ||--o{ diagnoses : ташхис мекунад
+repair_orders ||--o{ repair_works : корҳои таъмирӣ
+users ||--o{ repair_works : иҷро мекунад
+repair_orders ||--o{ order_parts : қисмҳои истифодашуда
+spare_parts ||--o{ order_parts : истифода мешавад
+repair_orders ||--o{ payments : пардохт дорад
+repair_orders ||--o{ status_histories : таърихи ҳолат
+users ||--o{ status_histories : тағйир медиҳад
+users ||--o{ notifications : мегирад
+repair_orders |o--o{ notifications : вобаста аст
+
+note bottom of users
+  Нақшҳо:
+  CUSTOMER — муштарӣ
+  MASTER — усто
+  ADMIN — маъмур
+end note
+
+note bottom of repair_orders
+  Ҳолатҳои асосӣ:
+  NEW, ACCEPTED, DIAGNOSTICS,
+  WAITING_APPROVAL, IN_PROGRESS,
+  WAITING_PARTS, COMPLETED, ISSUED,
+  REJECTED, CANCELLED.
+  master_id метавонад то таъин шудани усто NULL бошад.
+  service_id метавонад ҳангоми қабули дастгоҳ NULL бошад.
+end note
+
+note bottom of order_parts
+  Ҳангоми илова кардани қисм ба фармоиш,
+  нархи он дар unit_price сабт мешавад,
+  то таърихи нарх нигоҳ дошта шавад.
+end note
+@enduml

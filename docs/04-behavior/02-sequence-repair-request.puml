@@ -1,0 +1,66 @@
+@startuml tech-repair-sequence
+title Диаграммаи пайдарпайӣ — Сабти дархости таъмири техника
+
+actor "Муштарӣ\n(CUSTOMER)" as Customer
+participant "Веб-интерфейс" as Browser
+participant "Қабати\nаутентификатсия" as Auth
+participant "Контроллери\nфармоишҳо" as OrderController
+participant "Хадамоти\nсанҷиши маълумот" as ValidationService
+database "Пойгоҳи додаҳо" as DB
+participant "Хадамоти\nогоҳиҳо" as NotificationService
+
+Customer -> Browser : Интихоби навъи техника\nва ворид кардани маълумоти мушкилот
+Customer -> Browser : Пахш кардани «Сабти дархост»
+Browser -> Auth : POST /api/repair-orders\n(маълумоти фармоиш, токен)
+activate Auth
+
+Auth -> Auth : Санҷиши аутентификатсия\nва нақши CUSTOMER
+
+alt Истифодабаранда ворид нашудааст
+  Auth --> Browser : 401 Unauthorized
+  Browser --> Customer : Пешниҳоди воридшавӣ ба система
+else Истифодабаранда иҷозат дорад
+  Auth -> OrderController : createRepairOrder(orderData, customer)
+  activate OrderController
+
+  OrderController -> ValidationService : Санҷиши майдонҳои ҳатмӣ\nва маълумоти техника
+  activate ValidationService
+  ValidationService --> OrderController : Натиҷаи санҷиш
+  deactivate ValidationService
+
+  alt Маълумот нодуруст аст
+    OrderController --> Browser : 422 Validation Error
+    Browser --> Customer : Намоиши хатогиҳои форма
+  else Маълумот дуруст аст
+    OrderController -> DB : Санҷиши мавҷудияти муштарӣ
+    activate DB
+    DB --> OrderController : Муштарӣ тасдиқ шуд
+    deactivate DB
+
+    OrderController -> DB : BEGIN TRANSACTION
+    activate DB
+    OrderController -> DB : INSERT INTO repair_orders\n(customer_id, device_type, brand, model,\nproblem_description, status)\nVALUES (..., 'NEW')
+    DB --> OrderController : ID-и фармоиши нав
+
+    OrderController -> DB : INSERT INTO status_history\n(order_id, status, changed_by)
+    DB --> OrderController : Таърихи ҳолат сабт шуд
+    OrderController -> DB : COMMIT
+    DB --> OrderController : Амалиёт анҷом ёфт
+    deactivate DB
+
+    OrderController -> NotificationService : Огоҳ кардани администратор\nдар бораи дархости нав
+    activate NotificationService
+    NotificationService -> DB : Сабти огоҳӣ
+    DB --> NotificationService : Огоҳӣ сабт шуд
+    NotificationService --> OrderController : Огоҳӣ сохта шуд
+    deactivate NotificationService
+
+    OrderController --> Browser : 201 Created\n(repairOrder, status=NEW)
+    Browser --> Customer : Намоиши тасдиқи сабти дархост
+  end
+
+  deactivate OrderController
+end
+
+deactivate Auth
+@enduml
